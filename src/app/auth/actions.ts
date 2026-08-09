@@ -33,7 +33,7 @@ export async function signUp(_: AuthState, formData: FormData): Promise<AuthStat
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Check your details." };
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email: parsed.data.email,
     password: parsed.data.password,
     options: {
@@ -42,6 +42,7 @@ export async function signUp(_: AuthState, formData: FormData): Promise<AuthStat
     },
   });
   if (error) return { error: error.message };
+  if (data.session) redirect("/app");
   return { message: "Check your email to verify your CareLoop account." };
 }
 
