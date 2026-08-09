@@ -2,25 +2,367 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { addMedicine, logMedicine, updateReminderPreferences, type MedicineState } from "@/app/app/medicines/actions";
+import {
+  addMedicine,
+  logMedicine,
+  updateReminderPreferences,
+  type MedicineState,
+} from "@/app/app/medicines/actions";
 
 type Member = { id: string; full_name: string };
-type Medicine = { id: string; name: string; dosage: string; form: string | null; refill_date: string | null; schedule: { times?: string[] } | null; family_members: { full_name: string }[] };
+type Medicine = {
+  id: string;
+  name: string;
+  dosage: string;
+  form: string | null;
+  refill_date: string | null;
+  schedule: { times?: string[] } | null;
+  family_members: { full_name: string }[];
+};
 type Log = { medication_id: string; scheduled_for: string; status: string };
 const initialMedicineState: MedicineState = {};
 
-export function MedicineWorkspace({ members, medicines, logs, preferences }: { members: Member[]; medicines: Medicine[]; logs: Log[]; preferences: { medication_reminders: boolean; refill_alerts: boolean; timezone: string } | null }) {
+export function MedicineWorkspace({
+  members,
+  medicines,
+  logs,
+  preferences,
+}: {
+  members: Member[];
+  medicines: Medicine[];
+  logs: Log[];
+  preferences: {
+    medication_reminders: boolean;
+    refill_alerts: boolean;
+    timezone: string;
+  } | null;
+}) {
   const [showForm, setShowForm] = useState(false);
-  const [addState, addAction, addPending] = useActionState(addMedicine, initialMedicineState);
-  const [logState, logAction, logPending] = useActionState(logMedicine, initialMedicineState);
-  const [prefState, prefAction, prefPending] = useActionState(updateReminderPreferences, initialMedicineState);
+  const [addState, addAction, addPending] = useActionState(
+    addMedicine,
+    initialMedicineState,
+  );
+  const [logState, logAction, logPending] = useActionState(
+    logMedicine,
+    initialMedicineState,
+  );
+  const [prefState, prefAction, prefPending] = useActionState(
+    updateReminderPreferences,
+    initialMedicineState,
+  );
   const today = new Date().toISOString().slice(0, 10);
-  const score = medicines.length ? Math.round((logs.filter(log => log.status === "taken").length / Math.max(logs.length, medicines.length)) * 100) : 0;
-  return <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8"><div className="flex flex-col gap-4 border-b border-[#e1eae2] pb-6 sm:flex-row sm:items-end sm:justify-between"><div><Link href="/app" className="text-sm font-bold text-[#27815b]">← Back to CareLoop</Link><p className="mt-5 text-xs font-bold uppercase tracking-[.12em] text-[#4d9c73]">Medication manager</p><h1 className="mt-1 text-3xl font-bold tracking-tight text-[#19332f]">Today’s medicines</h1><p className="mt-2 text-sm text-[#688077]">Log doses, keep routines clear, and choose the reminders you want.</p></div><button onClick={() => setShowForm(!showForm)} className="rounded-xl bg-[#1b7152] px-4 py-3 text-sm font-semibold text-white">{showForm ? "Close form" : "+ Add medicine"}</button></div>
-    {showForm && <section className="soft-card mt-6 rounded-3xl border border-[#e5ece6] bg-white p-5 sm:p-6"><h2 className="text-lg font-bold">Add a medicine</h2>{members.length === 0 ? <p className="mt-3 rounded-xl bg-[#fff5ec] p-3 text-sm text-[#986553]">Add a family profile before adding a medicine.</p> : <form action={addAction} className="mt-5 grid gap-4 sm:grid-cols-2"><label className="text-sm font-bold">Family member<select required name="family_member_id" className="mt-1.5 w-full rounded-xl border border-[#dce7df] bg-white p-3 text-sm font-normal"><option value="">Select a profile</option>{members.map(member => <option key={member.id} value={member.id}>{member.full_name}</option>)}</select></label><Field name="name" label="Medicine name" required/><Field name="dosage" label="Dose" placeholder="500 mg" required/><Field name="form" label="Form" placeholder="Tablet, capsule, liquid…"/><Field name="times" label="Daily times" placeholder="09:00, 20:30" required/><Field name="meal_instruction" label="Meal instruction" placeholder="With food"/><Field name="start_date" label="Start date" type="date"/><Field name="refill_date" label="Refill date" type="date"/><label className="sm:col-span-2 text-sm font-bold">Notes<textarea name="notes" rows={2} className="mt-1.5 w-full rounded-xl border border-[#dce7df] p-3 text-sm font-normal"/></label><div className="sm:col-span-2"><Status state={addState}/><button disabled={addPending} className="mt-2 rounded-xl bg-[#1b7152] px-4 py-3 text-sm font-semibold text-white disabled:opacity-60">{addPending ? "Saving…" : "Add medicine"}</button></div></form>}</section>}
-    <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]"><div className="space-y-6"><section className="soft-card rounded-3xl border border-[#e5ece6] bg-white p-5 sm:p-6"><div className="flex items-center justify-between"><div><h2 className="text-lg font-bold">Schedule for today</h2><p className="mt-1 text-xs text-[#71877f]">{today}</p></div><span className="rounded-full bg-[#e8f4eb] px-3 py-1.5 text-sm font-bold text-[#27815b]">{score}% logged</span></div>{medicines.length === 0 ? <div className="mt-5 rounded-2xl border border-dashed border-[#cbded0] bg-[#fbfdfb] p-8 text-center"><p className="text-sm font-bold">No medicines scheduled</p><p className="mt-1 text-xs text-[#71877f]">When you add a medicine, its daily times will appear here.</p></div> : <div className="mt-5 divide-y divide-[#edf1ed]">{medicines.flatMap(medicine => (medicine.schedule?.times ?? []).map(time => { const scheduledFor = `${today}T${time}:00.000Z`; const status = logs.find(log => log.medication_id === medicine.id && log.scheduled_for === scheduledFor)?.status; return <div key={`${medicine.id}-${time}`} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center"><div className="grid h-10 w-10 place-items-center rounded-xl bg-[#eaf5ec] text-[#27815b]">●</div><div className="flex-1"><p className="font-bold text-[#25443d]">{medicine.name} <span className="font-normal text-[#71877f]">{medicine.dosage}</span></p><p className="mt-1 text-xs text-[#71877f]">{medicine.family_members[0]?.full_name ?? "Family member"} · {time}</p></div>{status ? <span className={`rounded-full px-3 py-1.5 text-xs font-bold ${status === "taken" ? "bg-[#e8f4eb] text-[#27815b]" : "bg-[#fff0eb] text-[#b96850]"}`}>{status}</span> : <form action={logAction} className="flex gap-2"><input type="hidden" name="medication_id" value={medicine.id}/><input type="hidden" name="scheduled_for" value={scheduledFor}/><button disabled={logPending} name="status" value="taken" className="rounded-lg bg-[#1b7152] px-3 py-2 text-xs font-bold text-white">Taken</button><button disabled={logPending} name="status" value="skipped" className="rounded-lg border border-[#d9e4dc] px-3 py-2 text-xs font-bold text-[#607a70]">Skip</button></form>}</div>;}))}</div>}<Status state={logState}/><p className="mt-5 rounded-xl bg-[#f7faf7] p-3 text-[11px] leading-5 text-[#71877f]">Do not start, stop, or change medicine use based solely on CareLoop. Speak with a qualified healthcare professional about any medicine questions.</p></section></div>
-      <aside className="space-y-5"><section className="soft-card rounded-3xl border border-[#e5ece6] bg-white p-5"><h2 className="text-lg font-bold">Reminder settings</h2><p className="mt-1 text-xs leading-5 text-[#71877f]">CareLoop stores these preferences now. Delivery can be connected to in-app or push notifications without changing your medicine data.</p><form action={prefAction} className="mt-5 space-y-3 text-sm"><Check name="medication_reminders" label="Medicine reminders" checked={preferences?.medication_reminders ?? true}/><Check name="refill_alerts" label="Refill alerts" checked={preferences?.refill_alerts ?? true}/><label className="block text-xs font-bold text-[#607a70]">Time zone<input name="timezone" defaultValue={preferences?.timezone ?? "UTC"} className="mt-1.5 w-full rounded-xl border border-[#dce7df] p-2.5 text-sm font-normal"/></label><Status state={prefState}/><button disabled={prefPending} className="w-full rounded-xl border border-[#d9e4dc] py-2.5 text-xs font-bold text-[#287354]">{prefPending ? "Saving…" : "Save preferences"}</button></form></section><section className="rounded-3xl bg-[#fff5ec] p-5"><p className="text-sm font-bold text-[#9a5b40]">Refill check</p><p className="mt-2 text-xs leading-5 text-[#946c5c]">{medicines.filter(m => m.refill_date && m.refill_date <= today).length ? "One or more refills are due. Review your supply." : "No refill dates are due today."}</p></section></aside></div></main>;
+  const score = medicines.length
+    ? Math.round(
+        (logs.filter((log) => log.status === "taken").length /
+          Math.max(logs.length, medicines.length)) *
+          100,
+      )
+    : 0;
+  return (
+    <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+      <div className="flex flex-col gap-4 border-b border-[#e1eae2] pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <Link href="/app" className="text-sm font-bold text-[#27815b]">
+            ← Back to CareLoop
+          </Link>
+          <p className="mt-5 text-xs font-bold uppercase tracking-[.12em] text-[#4d9c73]">
+            Medication manager
+          </p>
+          <h1 className="mt-1 text-3xl font-bold tracking-tight text-[#19332f]">
+            Today’s medicines
+          </h1>
+          <p className="mt-2 text-sm text-[#688077]">
+            Log doses, keep routines clear, and choose the reminders you want.
+          </p>
+        </div>
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="rounded-xl bg-[#1b7152] px-4 py-3 text-sm font-semibold text-white"
+        >
+          {showForm ? "Close form" : "+ Add medicine"}
+        </button>
+      </div>
+      {showForm && (
+        <section className="soft-card mt-6 rounded-3xl border border-[#e5ece6] bg-white p-5 sm:p-6">
+          <h2 className="text-lg font-bold">Add a medicine</h2>
+          {members.length === 0 ? (
+            <p className="mt-3 rounded-xl bg-[#fff5ec] p-3 text-sm text-[#986553]">
+              Add a family profile before adding a medicine.
+            </p>
+          ) : (
+            <form action={addAction} className="mt-5 grid gap-4 sm:grid-cols-2">
+              <label className="text-sm font-bold">
+                Family member
+                <select
+                  required
+                  name="family_member_id"
+                  className="mt-1.5 w-full rounded-xl border border-[#dce7df] bg-white p-3 text-sm font-normal"
+                >
+                  <option value="">Select a profile</option>
+                  {members.map((member) => (
+                    <option key={member.id} value={member.id}>
+                      {member.full_name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <Field name="name" label="Medicine name" required />
+              <Field name="dosage" label="Dose" placeholder="500 mg" required />
+              <Field
+                name="form"
+                label="Form"
+                placeholder="Tablet, capsule, liquid…"
+              />
+              <Field
+                name="times"
+                label="Daily times"
+                placeholder="09:00, 20:30"
+                required
+              />
+              <Field
+                name="meal_instruction"
+                label="Meal instruction"
+                placeholder="With food"
+              />
+              <Field name="start_date" label="Start date" type="date" />
+              <Field name="refill_date" label="Refill date" type="date" />
+              <label className="sm:col-span-2 text-sm font-bold">
+                Notes
+                <textarea
+                  name="notes"
+                  rows={2}
+                  className="mt-1.5 w-full rounded-xl border border-[#dce7df] p-3 text-sm font-normal"
+                />
+              </label>
+              <div className="sm:col-span-2">
+                <Status state={addState} />
+                <button
+                  disabled={addPending}
+                  className="mt-2 rounded-xl bg-[#1b7152] px-4 py-3 text-sm font-semibold text-white disabled:opacity-60"
+                >
+                  {addPending ? "Saving…" : "Add medicine"}
+                </button>
+              </div>
+            </form>
+          )}
+        </section>
+      )}
+      <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
+        <div className="space-y-6">
+          <section className="soft-card rounded-3xl border border-[#e5ece6] bg-white p-5 sm:p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-bold">Schedule for today</h2>
+                <p className="mt-1 text-xs text-[#71877f]">{today}</p>
+              </div>
+              <span className="rounded-full bg-[#e8f4eb] px-3 py-1.5 text-sm font-bold text-[#27815b]">
+                {score}% logged
+              </span>
+            </div>
+            {medicines.length === 0 ? (
+              <div className="mt-5 rounded-2xl border border-dashed border-[#cbded0] bg-[#fbfdfb] p-8 text-center">
+                <p className="text-sm font-bold">No medicines scheduled</p>
+                <p className="mt-1 text-xs text-[#71877f]">
+                  When you add a medicine, its daily times will appear here.
+                </p>
+              </div>
+            ) : (
+              <div className="mt-5 divide-y divide-[#edf1ed]">
+                {medicines.flatMap((medicine) =>
+                  (medicine.schedule?.times ?? []).map((time) => {
+                    const scheduledFor = `${today}T${time}:00.000Z`;
+                    const status = logs.find(
+                      (log) =>
+                        log.medication_id === medicine.id &&
+                        new Date(log.scheduled_for).getTime() === new Date(scheduledFor).getTime(),
+                    )?.status;
+                    return (
+                      <div
+                        key={`${medicine.id}-${time}`}
+                        className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center"
+                      >
+                        <div className="grid h-10 w-10 place-items-center rounded-xl bg-[#eaf5ec] text-[#27815b]">
+                          ●
+                        </div>
+                        <div className="flex-1">
+                          <p className="font-bold text-[#25443d]">
+                            {medicine.name}{" "}
+                            <span className="font-normal text-[#71877f]">
+                              {medicine.dosage}
+                            </span>
+                          </p>
+                          <p className="mt-1 text-xs text-[#71877f]">
+                            {medicine.family_members[0]?.full_name ??
+                              "Family member"}{" "}
+                            · {time}
+                          </p>
+                        </div>
+                        {status ? (
+                          <span
+                            className={`rounded-full px-3 py-1.5 text-xs font-bold ${status === "taken" ? "bg-[#e8f4eb] text-[#27815b]" : "bg-[#fff0eb] text-[#b96850]"}`}
+                          >
+                            {status}
+                          </span>
+                        ) : (
+                          <form action={logAction} className="flex gap-2">
+                            <input
+                              type="hidden"
+                              name="medication_id"
+                              value={medicine.id}
+                            />
+                            <input
+                              type="hidden"
+                              name="scheduled_for"
+                              value={scheduledFor}
+                            />
+                            <button
+                              disabled={logPending}
+                              name="status"
+                              value="taken"
+                              className="rounded-lg bg-[#1b7152] px-3 py-2 text-xs font-bold text-white"
+                            >
+                              Taken
+                            </button>
+                            <button
+                              disabled={logPending}
+                              name="status"
+                              value="skipped"
+                              className="rounded-lg border border-[#d9e4dc] px-3 py-2 text-xs font-bold text-[#607a70]"
+                            >
+                              Skip
+                            </button>
+                          </form>
+                        )}
+                      </div>
+                    );
+                  }),
+                )}
+              </div>
+            )}
+            <Status state={logState} />
+            <p className="mt-5 rounded-xl bg-[#f7faf7] p-3 text-[11px] leading-5 text-[#71877f]">
+              Do not start, stop, or change medicine use based solely on
+              CareLoop. Speak with a qualified healthcare professional about any
+              medicine questions.
+            </p>
+          </section>
+        </div>
+        <aside className="space-y-5">
+          <section className="soft-card rounded-3xl border border-[#e5ece6] bg-white p-5">
+            <h2 className="text-lg font-bold">Reminder settings</h2>
+            <p className="mt-1 text-xs leading-5 text-[#71877f]">
+              CareLoop stores these preferences now. Delivery can be connected
+              to in-app or push notifications without changing your medicine
+              data.
+            </p>
+            <form action={prefAction} className="mt-5 space-y-3 text-sm">
+              <Check
+                name="medication_reminders"
+                label="Medicine reminders"
+                checked={preferences?.medication_reminders ?? true}
+              />
+              <Check
+                name="refill_alerts"
+                label="Refill alerts"
+                checked={preferences?.refill_alerts ?? true}
+              />
+              <label className="block text-xs font-bold text-[#607a70]">
+                Time zone
+                <input
+                  name="timezone"
+                  defaultValue={preferences?.timezone ?? "UTC"}
+                  className="mt-1.5 w-full rounded-xl border border-[#dce7df] p-2.5 text-sm font-normal"
+                />
+              </label>
+              <Status state={prefState} />
+              <button
+                disabled={prefPending}
+                className="w-full rounded-xl border border-[#d9e4dc] py-2.5 text-xs font-bold text-[#287354]"
+              >
+                {prefPending ? "Saving…" : "Save preferences"}
+              </button>
+            </form>
+          </section>
+          <section className="rounded-3xl bg-[#fff5ec] p-5">
+            <p className="text-sm font-bold text-[#9a5b40]">Refill check</p>
+            <p className="mt-2 text-xs leading-5 text-[#946c5c]">
+              {medicines.filter((m) => m.refill_date && m.refill_date <= today)
+                .length
+                ? "One or more refills are due. Review your supply."
+                : "No refill dates are due today."}
+            </p>
+          </section>
+        </aside>
+      </div>
+    </main>
+  );
 }
-function Field({name,label,type="text",placeholder,required=false}:{name:string;label:string;type?:string;placeholder?:string;required?:boolean}) { return <label className="text-sm font-bold">{label}<input name={name} type={type} required={required} placeholder={placeholder} className="mt-1.5 w-full rounded-xl border border-[#dce7df] p-3 text-sm font-normal"/></label>; }
-function Check({name,label,checked}:{name:string;label:string;checked:boolean}) { return <label className="flex items-center justify-between gap-3"><span>{label}</span><input name={name} type="checkbox" defaultChecked={checked} className="h-4 w-4 accent-[#27815b]"/></label>; }
-function Status({state}:{state:MedicineState}) { return <>{state.error && <p role="alert" className="mt-3 rounded-xl bg-[#fff0ec] px-3 py-2.5 text-xs text-[#a14f3b]">{state.error}</p>}{state.message && <p role="status" className="mt-3 rounded-xl bg-[#eaf6ed] px-3 py-2.5 text-xs text-[#23724e]">{state.message}</p>}</>; }
+function Field({
+  name,
+  label,
+  type = "text",
+  placeholder,
+  required = false,
+}: {
+  name: string;
+  label: string;
+  type?: string;
+  placeholder?: string;
+  required?: boolean;
+}) {
+  return (
+    <label className="text-sm font-bold">
+      {label}
+      <input
+        name={name}
+        type={type}
+        required={required}
+        placeholder={placeholder}
+        className="mt-1.5 w-full rounded-xl border border-[#dce7df] p-3 text-sm font-normal"
+      />
+    </label>
+  );
+}
+function Check({
+  name,
+  label,
+  checked,
+}: {
+  name: string;
+  label: string;
+  checked: boolean;
+}) {
+  return (
+    <label className="flex items-center justify-between gap-3">
+      <span>{label}</span>
+      <input
+        name={name}
+        type="checkbox"
+        defaultChecked={checked}
+        className="h-4 w-4 accent-[#27815b]"
+      />
+    </label>
+  );
+}
+function Status({ state }: { state: MedicineState }) {
+  return (
+    <>
+      {state.error && (
+        <p
+          role="alert"
+          className="mt-3 rounded-xl bg-[#fff0ec] px-3 py-2.5 text-xs text-[#a14f3b]"
+        >
+          {state.error}
+        </p>
+      )}
+      {state.message && (
+        <p
+          role="status"
+          className="mt-3 rounded-xl bg-[#eaf6ed] px-3 py-2.5 text-xs text-[#23724e]"
+        >
+          {state.message}
+        </p>
+      )}
+    </>
+  );
+}
