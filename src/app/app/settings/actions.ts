@@ -5,7 +5,6 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
 export type SettingsState = { error?: string; message?: string };
-export const initialSettingsState: SettingsState = {};
 
 async function currentUserId() {
   const supabase = await createClient();

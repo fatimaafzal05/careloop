@@ -5,7 +5,6 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
 export type AppointmentState = { error?: string; message?: string };
-export const initialAppointmentState: AppointmentState = {};
 
 async function context() {
   const supabase = await createClient();

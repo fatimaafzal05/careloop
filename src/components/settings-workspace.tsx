@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useActionState } from "react";
-import { initialSettingsState, updateNotifications, updateProfile, type SettingsState } from "@/app/app/settings/actions";
+import { updateNotifications, updateProfile, type SettingsState } from "@/app/app/settings/actions";
+
+const initialSettingsState: SettingsState = {};
 
 function Status({ state }: { state: SettingsState }) { return <>{state.error && <p role="alert" className="mt-3 rounded-xl bg-[#fff0ec] p-3 text-xs text-[#a14f3b]">{state.error}</p>}{state.message && <p role="status" className="mt-3 rounded-xl bg-[#eaf6ed] p-3 text-xs text-[#23724e]">{state.message}</p>}</>; }
 

@@ -2,11 +2,12 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { addAppointment, addHealthEvent, initialAppointmentState, type AppointmentState } from "@/app/app/appointments/actions";
+import { addAppointment, addHealthEvent, type AppointmentState } from "@/app/app/appointments/actions";
 
 type Member = { id: string; full_name: string };
 type Appointment = { id: string; starts_at: string; doctor_name: string | null; specialty: string | null; facility_name: string | null; purpose: string | null; follow_up_at: string | null; status: string; family_members: { full_name: string }[] };
 type Event = { id: string; occurred_at: string; title: string; type: string; notes: string | null; family_members: { full_name: string }[] };
+const initialAppointmentState: AppointmentState = {};
 
 export function AppointmentsWorkspace({ members, appointments, events }: { members: Member[]; appointments: Appointment[]; events: Event[] }) {
   const [form, setForm] = useState<"appointment" | "event" | null>(null);

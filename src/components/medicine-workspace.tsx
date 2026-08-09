@@ -2,17 +2,18 @@
 
 import Link from "next/link";
 import { useActionState, useState } from "react";
-import { addMedicine, basicState, logMedicine, updateReminderPreferences, type MedicineState } from "@/app/app/medicines/actions";
+import { addMedicine, logMedicine, updateReminderPreferences, type MedicineState } from "@/app/app/medicines/actions";
 
 type Member = { id: string; full_name: string };
 type Medicine = { id: string; name: string; dosage: string; form: string | null; refill_date: string | null; schedule: { times?: string[] } | null; family_members: { full_name: string }[] };
 type Log = { medication_id: string; scheduled_for: string; status: string };
+const initialMedicineState: MedicineState = {};
 
 export function MedicineWorkspace({ members, medicines, logs, preferences }: { members: Member[]; medicines: Medicine[]; logs: Log[]; preferences: { medication_reminders: boolean; refill_alerts: boolean; timezone: string } | null }) {
   const [showForm, setShowForm] = useState(false);
-  const [addState, addAction, addPending] = useActionState(addMedicine, basicState);
-  const [logState, logAction, logPending] = useActionState(logMedicine, basicState);
-  const [prefState, prefAction, prefPending] = useActionState(updateReminderPreferences, basicState);
+  const [addState, addAction, addPending] = useActionState(addMedicine, initialMedicineState);
+  const [logState, logAction, logPending] = useActionState(logMedicine, initialMedicineState);
+  const [prefState, prefAction, prefPending] = useActionState(updateReminderPreferences, initialMedicineState);
   const today = new Date().toISOString().slice(0, 10);
   const score = medicines.length ? Math.round((logs.filter(log => log.status === "taken").length / Math.max(logs.length, medicines.length)) * 100) : 0;
   return <main className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8"><div className="flex flex-col gap-4 border-b border-[#e1eae2] pb-6 sm:flex-row sm:items-end sm:justify-between"><div><Link href="/app" className="text-sm font-bold text-[#27815b]">← Back to CareLoop</Link><p className="mt-5 text-xs font-bold uppercase tracking-[.12em] text-[#4d9c73]">Medication manager</p><h1 className="mt-1 text-3xl font-bold tracking-tight text-[#19332f]">Today’s medicines</h1><p className="mt-2 text-sm text-[#688077]">Log doses, keep routines clear, and choose the reminders you want.</p></div><button onClick={() => setShowForm(!showForm)} className="rounded-xl bg-[#1b7152] px-4 py-3 text-sm font-semibold text-white">{showForm ? "Close form" : "+ Add medicine"}</button></div>
