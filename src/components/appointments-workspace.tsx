@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useActionState, useState } from "react";
+import { useActionState, useRef, useState } from "react";
 import {
   addAppointment,
   addHealthEvent,
@@ -361,7 +361,7 @@ function DateTimeField({
   label: string;
   required?: boolean;
 }) {
-  const [utcValue, setUtcValue] = useState("");
+  const utcValueRef = useRef<HTMLInputElement>(null);
   return (
     <label className="text-sm font-bold">
       {label}
@@ -369,16 +369,16 @@ function DateTimeField({
         name={`${name}_local`}
         type="datetime-local"
         required={required}
-        onChange={(event) =>
-          setUtcValue(
-            event.currentTarget.value
+        onInput={(event) => {
+          if (utcValueRef.current) {
+            utcValueRef.current.value = event.currentTarget.value
               ? new Date(event.currentTarget.value).toISOString()
-              : "",
-          )
-        }
+              : "";
+          }
+        }}
         className="mt-1.5 w-full rounded-xl border border-[#dce7df] p-3 text-sm font-normal"
       />
-      <input type="hidden" name={name} value={utcValue} />
+      <input ref={utcValueRef} type="hidden" name={name} defaultValue="" />
     </label>
   );
 }
