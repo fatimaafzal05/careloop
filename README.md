@@ -2,7 +2,23 @@
 
 > A privacy-first family health organizer for keeping health information, medicines, appointments, documents, emergency details, and caregiver access in one calm, secure workspace.
 
+<p align="center">
+  <a href="https://careloop-xi.vercel.app"><strong>View the live application</strong></a>
+  &nbsp;·&nbsp;
+  <a href="#what-it-includes">Explore features</a>
+  &nbsp;·&nbsp;
+  <a href="#local-setup">Run locally</a>
+</p>
+
 CareLoop helps households organize health information without presenting itself as a replacement for a clinician, emergency service, or professional medical advice. It is built with a mobile-first experience, clear consent boundaries, and strong household-level authorization in mind.
+
+## Product preview
+
+| Calm family-health home | Clear, accessible account setup |
+| --- | --- |
+| ![CareLoop landing page](./public/careloop-landing.jpg) | ![CareLoop account creation page](./public/careloop-signup.jpg) |
+
+Screenshots use fictional interface content only. Never add real family or health information to repository images.
 
 ## What it includes
 
