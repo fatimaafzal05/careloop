@@ -18,6 +18,8 @@ export async function createHousehold(_: FamilyState, formData: FormData): Promi
   const name = text(2, 120).safeParse(formData.get("name"));
   if (!name.success) return { error: "Enter a household name between 2 and 120 characters." };
   const supabase = await createClient();
+  const { data: authData, error: authError } = await supabase.auth.getUser();
+  if (authError || !authData.user) return { error: "Your session has ended. Please sign in again." };
   const { error } = await supabase.rpc("create_household", { household_name: name.data });
   if (error) return { error: "We couldn’t create your household. Please try again." };
   revalidatePath("/app/family"); revalidatePath("/app");
