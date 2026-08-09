@@ -52,7 +52,7 @@ export async function signIn(_: AuthState, formData: FormData): Promise<AuthStat
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
-  if (error) return { error: "We couldn’t sign you in with those details." };
+  if (error) return { error: "We couldn't sign you in with those details." };
   const next = String(formData.get("next") ?? "/app");
   redirect(next.startsWith("/") && !next.startsWith("//") ? next : "/app");
 }
@@ -65,7 +65,7 @@ export async function requestPasswordReset(_: AuthState, formData: FormData): Pr
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, {
     redirectTo: `${await siteUrl()}/reset-password`,
   });
-  if (error) return { error: "We couldn’t start the password reset. Please try again." };
+  if (error) return { error: "We couldn't start the password reset. Please try again." };
   return { message: "If an account exists, password-reset instructions are on their way." };
 }
 
