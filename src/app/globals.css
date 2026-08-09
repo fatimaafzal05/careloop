@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f8f4;
+  --foreground: #19332f;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: Arial, Helvetica, sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { background: var(--background); color: var(--foreground); font-family: Arial, Helvetica, sans-serif; }
+button, a, input, select { -webkit-tap-highlight-color: transparent; }
+::selection { background: #b9e3ce; color: #12362c; }
+
+.mesh {
+  background-image: radial-gradient(circle at 12% 12%, rgba(199, 234, 215, .8), transparent 25%), radial-gradient(circle at 86% 22%, rgba(255, 225, 190, .7), transparent 23%), radial-gradient(circle at 55% 88%, rgba(205, 227, 245, .7), transparent 30%);
+}
+
+.soft-card { box-shadow: 0 8px 30px rgba(27, 54, 47, .06); }
+.app-dark { --background: #102925; --foreground: #f4f8f2; }
+.app-dark .bg-white { background-color: #173630 !important; }
+.app-dark .bg-\[\#f7f8f4\] { background-color: #102925 !important; }
+.app-dark .text-\[\#19332f\], .app-dark .text-\[\#25443d\] { color: #edf8f0 !important; }
+.app-dark .text-\[\#668078\], .app-dark .text-\[\#7a8c86\] { color: #afc4bc !important; }
+.app-dark .border-\[\#e8eee8\], .app-dark .border-\[\#e0e9e3\] { border-color: #31564d !important; }

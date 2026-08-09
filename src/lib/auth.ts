@@ -1,0 +1,17 @@
+import { redirect } from "next/navigation";
+import { hasSupabaseEnv } from "./supabase/env";
+import { createClient } from "./supabase/server";
+
+export async function getCurrentUser() {
+  if (!hasSupabaseEnv()) return null;
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.getClaims();
+  if (error || !data?.claims?.sub) return null;
+  return { id: data.claims.sub, email: data.claims.email ?? null };
+}
+
+export async function requireUser() {
+  const user = await getCurrentUser();
+  if (!user) redirect("/login?next=/app");
+  return user;
+}
